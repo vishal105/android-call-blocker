@@ -1,19 +1,16 @@
 package com.vishal.callblocker.broadcastreceiver
 
-import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
-import android.app.AlertDialog
-import android.content.ActivityNotFoundException
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
+import android.graphics.Color
+import android.graphics.PixelFormat
 import android.telecom.TelecomManager
 import android.telephony.TelephonyManager
 import android.util.Log
-import android.widget.Toast
+import android.view.WindowManager
+import android.widget.LinearLayout
 import com.vishal.callblocker.blockednumber.BlockedNumberDatabase
 import com.vishal.callblocker.util.AsyncExecutorUtil
 
@@ -65,7 +62,7 @@ class IncomingCallReceiver : BroadcastReceiver() {
                 Log.i(LOG_TAG, String.format("Blocked number matched: %s", phoneNumber))
                 val telecomManager = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
                 telecomManager.endCall()
-                dialog(context, phoneNumber)
+                dialog(context, intent)
             }
             AsyncExecutorUtil.instance.executor.execute(Runnable {
                 val match = blockedNumberDao?.all?.stream()?.filter { blockedNumber -> blockedNumber.regex.matcher(phoneNumber).find() }?.findAny()
@@ -77,50 +74,43 @@ class IncomingCallReceiver : BroadcastReceiver() {
 
                 val telecomManager = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
                 telecomManager.endCall()
-                dialog(context, match.get().toFormattedString())
+
+                dialog(context, intent)
 
                 // TODO Some UI
             })
         }
     }
 
-    companion object {
-        private val LOG_TAG = IncomingCallReceiver::class.java.simpleName
+    private fun dialog(context: Context, intent: Intent?) {
+        var wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        var params1 = WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG,
+                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
+                , WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+                , WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
+                PixelFormat.TRANSLUCENT)
+
+        params1.height = 75
+        params1.width = 512
+        params1.x = 265
+        params1.y = 400
+        params1.format = PixelFormat.TRANSLUCENT
+
+        var ly1 = LinearLayout(context)
+        ly1.setBackgroundColor(Color.BLACK)
+        ly1.setOrientation(LinearLayout.VERTICAL)
+
+        wm.addView(ly1, params1)
+        /*val i = Intent(context, IncomingCallActivity::class.java)
+        i.putExtras(intent)
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        context.startActivity(i)*/
     }
 
-    @SuppressLint("MissingPermission")
-    fun dialog(context: Context, phn_no: String?) {
-        var alertDialog: AlertDialog? = null
-        val builder = AlertDialog.Builder(context)
-        //set title for alert dialog
-        builder.setTitle("Title")
-        //set message for alert dialog
-        builder.setMessage("Write your message here.")
-        builder.setIcon(android.R.drawable.ic_dialog_alert)
-
-        //performing positive action
-        builder.setPositiveButton("Redial") { dialogInterface, which ->
-            try {
-                val my_callIntent = Intent(Intent.ACTION_CALL)
-                my_callIntent.data = Uri.parse("tel:$phn_no")
-//                if (Activity.checkSelfPermission(context, Manifest.permission.CALL_PHONE) !=
-//                        PackageManager.PERMISSION_GRANTED) {
-//
-//                }
-                context.startActivity(my_callIntent)
-            } catch (e: ActivityNotFoundException) {
-                Toast.makeText(context, "Error in your phone call" + e.message, Toast.LENGTH_LONG).show()
-            }
-
-        }
-        //performing negative action
-        builder.setNegativeButton("No") { dialogInterface, which ->
-            alertDialog?.dismiss()
-        }
-        // Create the AlertDialog
-        alertDialog = builder.create()
-        // Set other dialog properties
-        alertDialog.setCancelable(false)
-        alertDialog.show()
+    companion object {
+        private val LOG_TAG = IncomingCallReceiver::class.java.simpleName
     }
 }
