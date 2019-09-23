@@ -1,4 +1,4 @@
-package com.alexazhu.callblocker;
+package com.vishal.callblocker;
 
 import org.junit.Test;
 

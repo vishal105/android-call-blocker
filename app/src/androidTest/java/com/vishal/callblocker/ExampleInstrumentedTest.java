@@ -1,4 +1,4 @@
-package com.alexazhu.callblocker;
+package com.vishal.callblocker;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("com.alexazhu.callblocker", appContext.getPackageName());
+        assertEquals("com.vishal.callblocker", appContext.getPackageName());
     }
 }

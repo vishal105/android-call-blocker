@@ -1,4 +1,4 @@
-package com.alexazhu.callblocker.util
+package com.vishal.callblocker.util
 
 import android.Manifest
 import android.content.Context
@@ -23,7 +23,7 @@ class PermissionsUtil(private val context: Context) {
     }
 
     companion object {
-        private val LOG_TAG = PermissionsUtil::class.java!!.getSimpleName()
+        private val LOG_TAG = PermissionsUtil::class.java?.getSimpleName()
 
         val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.READ_PHONE_STATE, Manifest.permission.ANSWER_PHONE_CALLS, Manifest.permission.READ_CALL_LOG, Manifest.permission.CALL_PHONE)
     }
