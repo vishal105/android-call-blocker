@@ -12,11 +12,11 @@ public class AsyncExecutorUtil {
         executor = Executors.newFixedThreadPool(3);
     }
 
-    public Executor getExecutor() {
-        return executor;
-    }
-
     public static AsyncExecutorUtil getInstance() {
         return INSTANCE;
+    }
+
+    public Executor getExecutor() {
+        return executor;
     }
 }

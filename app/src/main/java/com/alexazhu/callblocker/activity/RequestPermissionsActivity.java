@@ -73,7 +73,7 @@ public class RequestPermissionsActivity extends AppCompatActivity {
         @Override
         public void onClick(final View v) {
             permissionsButton.setEnabled(false);
-            requestPermissions(PermissionsUtil.REQUIRED_PERMISSIONS, PERMISSIONS_REQUEST_CODE);
+            requestPermissions(PermissionsUtil.Companion.getREQUIRED_PERMISSIONS(), PERMISSIONS_REQUEST_CODE);
         }
     }
 }
