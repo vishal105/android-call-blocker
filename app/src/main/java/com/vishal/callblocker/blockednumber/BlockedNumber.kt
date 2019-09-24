@@ -6,13 +6,13 @@ import java.util.regex.Pattern
 
 @Entity(tableName = "blockednumbers")
 data class BlockedNumber(@ColumnInfo(name = "type")
-                         var type: BlockedNumberType? = null,
+                         var type: BlockedNumberType? = BlockedNumberType.EXACT_MATCH,
                          @PrimaryKey
                          var regex: Pattern = Pattern.compile(""),
                          @ColumnInfo(name = "country_code")
-                         var countryCode: String? = null,
+                         var countryCode: String? = "",
                          @ColumnInfo(name = "phone_number")
-                         var phoneNumber: String? = null
+                         var phoneNumber: String? = "123"
 ) {
 
     @Ignore
@@ -22,9 +22,7 @@ data class BlockedNumber(@ColumnInfo(name = "type")
         get() = String.format("\\+%s%s", countryCode, phoneNumber)
 
     init {
-        this.type = type
         this.countryCode = countryCode?.replace("+", "")
-        this.phoneNumber = phoneNumber
         when (type) {
             BlockedNumberType.EXACT_MATCH -> {
                 require(Pattern.matches("\\d+", phoneNumber)) { String.format("Blocked number must be a string of digits only: %s", phoneNumber) }
@@ -39,7 +37,7 @@ data class BlockedNumber(@ColumnInfo(name = "type")
     }
 
     fun toFormattedString(): String {
-        val formatter = phoneNumberUtil.getAsYouTypeFormatter(phoneNumberUtil.getRegionCodeForCountryCode(Integer.parseInt(countryCode)))
+        val formatter = phoneNumberUtil.getAsYouTypeFormatter(phoneNumberUtil.getRegionCodeForCountryCode(Integer.parseInt(countryCode?:"0")))
         var formattedNumber = ""
         for (digit in phoneNumber?.toCharArray() ?: CharArray(0)) {
             formattedNumber = formatter.inputDigit(digit)
@@ -59,6 +57,15 @@ data class BlockedNumber(@ColumnInfo(name = "type")
 
     override fun toString(): String {
         return String.format("%s|%s", type, regex)
+    }
+
+    override fun hashCode(): Int {
+        var result = type?.hashCode() ?: 0
+        result = 31 * result + regex.hashCode()
+        result = 31 * result + (countryCode?.hashCode() ?: 0)
+        result = 31 * result + (phoneNumber?.hashCode() ?: 0)
+        result = 31 * result + (phoneNumberUtil?.hashCode() ?: 0)
+        return result
     }
 }
 

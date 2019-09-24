@@ -13,16 +13,16 @@ import java.util.function.Function
 import java.util.stream.Collectors
 import java.util.stream.IntStream
 
-class CountryListAdapter(private val activity: Activity, dialog: AddNumberDialogFragment) : BaseAdapter() {
+class CountryListAdapter(private val activity: Activity?, dialog: AddNumberDialogFragment?) : BaseAdapter() {
     private val phoneNumberUtil: PhoneNumberUtil
     private val deviceLocale: Locale
     private var countryCodes: List<Country>? = null
 
     init {
-        this.deviceLocale = activity.resources.configuration.locales.get(0)
+        this.deviceLocale = activity?.resources?.configuration?.locales?.get(0)!!
         this.phoneNumberUtil = PhoneNumberUtil.getInstance()
         AsyncExecutorUtil.instance.executor.execute(Runnable {
-            this@CountryListAdapter.countryCodes = PhoneNumberUtil.getInstance().supportedCallingCodes.stream()
+           countryCodes = PhoneNumberUtil.getInstance().supportedCallingCodes.stream()
                     .map<Country>(Function<Int, Country> { Country(it) })
                     .sorted()
                     .collect(Collectors.toList<Country>())
@@ -30,9 +30,9 @@ class CountryListAdapter(private val activity: Activity, dialog: AddNumberDialog
                     .filter { index -> countryCodes?.get(index)?.regionCode == deviceLocale.country }
                     .findFirst()
                     .orElse(0)
-            activity.runOnUiThread {
-                this@CountryListAdapter.notifyDataSetChanged()
-                dialog.selectCountry(defaultPosition)
+            activity?.runOnUiThread {
+               notifyDataSetChanged()
+                dialog?.selectCountry(defaultPosition)
             }
         })
     }
@@ -49,14 +49,14 @@ class CountryListAdapter(private val activity: Activity, dialog: AddNumberDialog
         return 0
     }
 
-    override fun getView(position: Int, convertView: View, parent: ViewGroup): View {
-        val inflater = activity.layoutInflater
-        val itemView = inflater.inflate(R.layout.item_country, parent, false)
+    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View? {
+        val inflater = activity?.layoutInflater
+        val itemView = inflater?.inflate(R.layout.item_country, parent, false)
 
-        val regionCode = itemView.findViewById<TextView>(R.id.country_name)
-        regionCode.text = countryCodes?.get(position)?.countryName
-        val flag = itemView.findViewById<TextView>(R.id.country_flag)
-        flag.text = countryCodes?.get(position)?.flagCode
+        val regionCode = itemView?.findViewById<TextView>(R.id.country_name)
+        regionCode?.text = countryCodes?.get(position)?.countryName
+        val flag = itemView?.findViewById<TextView>(R.id.country_flag)
+        flag?.text = countryCodes?.get(position)?.flagCode
 
         return itemView
     }
