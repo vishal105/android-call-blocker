@@ -3,16 +3,21 @@ package com.vishal.callblocker.broadcastreceiver
 import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Context.WINDOW_SERVICE
 import android.content.Intent
-import android.graphics.Color
 import android.graphics.PixelFormat
 import android.telecom.TelecomManager
 import android.telephony.TelephonyManager
 import android.util.Log
+import android.view.Gravity
+import android.view.LayoutInflater
 import android.view.WindowManager
-import android.widget.LinearLayout
+import com.vishal.callblocker.R
 import com.vishal.callblocker.blockednumber.BlockedNumberDatabase
 import com.vishal.callblocker.util.AsyncExecutorUtil
+import com.vishal.callblocker.activity.IncomingCallActivity
+
+
 
 
 class IncomingCallReceiver : BroadcastReceiver() {
@@ -83,31 +88,74 @@ class IncomingCallReceiver : BroadcastReceiver() {
     }
 
     private fun dialog(context: Context, intent: Intent?) {
-        var wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        var params1 = WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT,
+        val i = Intent(context, IncomingCallActivity::class.java)
+        i.putExtras(intent)
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS or Intent.FLAG_ACTIVITY_NO_ANIMATION)
+//        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+//        i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        context.startActivity(i)
+
+//        showCustomPopupMenu(context)
+/*
+        var alertDialog: AlertDialog? = null
+        val builder = AlertDialog.Builder(context)
+        //set title for alert dialog
+        builder.setTitle("Title")
+        //set message for alert dialog
+        builder.setMessage("Write your message here.")
+        builder.setIcon(android.R.drawable.ic_dialog_alert)
+
+        //performing positive action
+        builder.setPositiveButton("Redial") { dialogInterface, which ->
+            try {
+                val my_callIntent = Intent(Intent.ACTION_CALL)
+                my_callIntent.data = Uri.parse("tel:" + intent?.getStringExtra(
+                        TelephonyManager.EXTRA_INCOMING_NUMBER)
+                )
+//                if (Activity.checkSelfPermission(context, Manifest.permission.CALL_PHONE) !=
+//                        PackageManager.PERMISSION_GRANTED) {
+//
+//                }
+                context?.startActivity(my_callIntent)
+            } catch (e: ActivityNotFoundException) {
+                Toast.makeText(context, "Error in your phone call" + e.message, Toast.LENGTH_LONG).show()
+            }
+
+        }
+        //performing negative action
+        builder.setNegativeButton("No") { dialogInterface, which ->
+            alertDialog?.dismiss()
+        }
+
+        builder.setOnDismissListener {
+
+        }
+        // Create the AlertDialog
+        alertDialog = builder.create()
+        alertDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT or WindowManager.LayoutParams.TYPE_SYSTEM_DIALOG);
+        // Set other dialog properties
+        alertDialog.setCancelable(false)
+        alertDialog.show()
+        Handler().postDelayed(Runnable {
+            alertDialog.dismiss()
+        }, 5000)*/
+    }
+
+    private fun showCustomPopupMenu(context: Context?) {
+        var windowManager2 = context?.getSystemService(WINDOW_SERVICE) as WindowManager?
+        val layoutInflater = context?.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater?
+        val view = layoutInflater!!.inflate(R.layout.xxact_copy_popupmenu, null)
+        var params = WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG,
-                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
-                , WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
-                , WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_PHONE or WindowManager.LayoutParams.TYPE_SYSTEM_ALERT or WindowManager.LayoutParams.TYPE_SYSTEM_DIALOG,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT)
 
-        params1.height = 75
-        params1.width = 512
-        params1.x = 265
-        params1.y = 400
-        params1.format = PixelFormat.TRANSLUCENT
-
-        var ly1 = LinearLayout(context)
-        ly1.setBackgroundColor(Color.BLACK)
-        ly1.setOrientation(LinearLayout.VERTICAL)
-
-        wm.addView(ly1, params1)
-        /*val i = Intent(context, IncomingCallActivity::class.java)
-        i.putExtras(intent)
-        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-        context.startActivity(i)*/
+        params.gravity = Gravity.CENTER or Gravity.CENTER
+        params.x = 0
+        params.y = 0
+        windowManager2?.addView(view, params)
     }
 
     companion object {

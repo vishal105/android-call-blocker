@@ -1,6 +1,7 @@
 package com.vishal.callblocker.activity
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.AlertDialog
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -14,7 +15,7 @@ import android.util.Log
 import android.view.WindowManager
 import android.widget.Toast
 
-class IncomingCallActivity : AppCompatActivity() {
+class IncomingCallActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         try {
@@ -22,8 +23,8 @@ class IncomingCallActivity : AppCompatActivity() {
             getWindow().addFlags(
                     WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL);
             Log.d("IncomingCallActivity: onCreate: ", "flag2");
-           dialog(context = this, phn_no = getIntent()?.getStringExtra(
-                   TelephonyManager.EXTRA_INCOMING_NUMBER)
+            dialog(context = this, phn_no = getIntent()?.getStringExtra(
+                    TelephonyManager.EXTRA_INCOMING_NUMBER)
             )
         } catch (e: Exception) {
             Log.d("Exception", e.toString());
@@ -65,6 +66,7 @@ class IncomingCallActivity : AppCompatActivity() {
 
         builder.setOnDismissListener {
             finish()
+            java.lang.System.exit(0)
         }
         // Create the AlertDialog
         alertDialog = builder.create()
@@ -73,6 +75,6 @@ class IncomingCallActivity : AppCompatActivity() {
         alertDialog.show()
         Handler().postDelayed(Runnable {
             alertDialog.dismiss()
-        },5000)
+        }, 5000)
     }
 }
