@@ -12,12 +12,11 @@ import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.WindowManager
+import com.osquare.support.utils.sharedPreference.SharedPrefsUtil
 import com.vishal.callblocker.R
+import com.vishal.callblocker.activity.IncomingCallActivity
 import com.vishal.callblocker.blockednumber.BlockedNumberDatabase
 import com.vishal.callblocker.util.AsyncExecutorUtil
-import com.vishal.callblocker.activity.IncomingCallActivity
-
-
 
 
 class IncomingCallReceiver : BroadcastReceiver() {
@@ -88,12 +87,17 @@ class IncomingCallReceiver : BroadcastReceiver() {
     }
 
     private fun dialog(context: Context, intent: Intent?) {
-        val i = Intent(context, IncomingCallActivity::class.java)
-        i.putExtras(intent)
-        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS or Intent.FLAG_ACTIVITY_NO_ANIMATION)
+        if (!(intent?.getStringExtra(
+                        TelephonyManager.EXTRA_INCOMING_NUMBER).equals(SharedPrefsUtil.getNumber(context)))) {
+            val i = Intent(context, IncomingCallActivity::class.java)
+            i.putExtras(intent)
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS or Intent.FLAG_ACTIVITY_NO_ANIMATION)
 //        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 //        i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-        context.startActivity(i)
+            context.startActivity(i)
+        } else {
+            SharedPrefsUtil.setNumber("",context)
+        }
 
 //        showCustomPopupMenu(context)
 /*

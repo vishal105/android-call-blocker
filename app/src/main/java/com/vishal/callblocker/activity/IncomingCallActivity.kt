@@ -9,11 +9,13 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
-import android.support.v7.app.AppCompatActivity
 import android.telephony.TelephonyManager
 import android.util.Log
 import android.view.WindowManager
 import android.widget.Toast
+import com.osquare.support.utils.sharedPreference.SharedPrefsUtil
+import kotlinx.android.synthetic.main.item_phone_number.*
+
 
 class IncomingCallActivity : Activity() {
 
@@ -47,13 +49,10 @@ class IncomingCallActivity : Activity() {
         //performing positive action
         builder.setPositiveButton("Redial") { dialogInterface, which ->
             try {
-                val my_callIntent = Intent(Intent.ACTION_CALL)
-                my_callIntent.data = Uri.parse("tel:$phn_no")
-//                if (Activity.checkSelfPermission(context, Manifest.permission.CALL_PHONE) !=
-//                        PackageManager.PERMISSION_GRANTED) {
-//
-//                }
-                context.startActivity(my_callIntent)
+                val intent = Intent(Intent.ACTION_DIAL)
+                SharedPrefsUtil.setNumber(phn_no,this)
+                intent.data = Uri.parse("tel:$phn_no")
+                startActivity(intent)
             } catch (e: ActivityNotFoundException) {
                 Toast.makeText(context, "Error in your phone call" + e.message, Toast.LENGTH_LONG).show()
             }
@@ -61,6 +60,7 @@ class IncomingCallActivity : Activity() {
         }
         //performing negative action
         builder.setNegativeButton("No") { dialogInterface, which ->
+            SharedPrefsUtil.setNumber("",this)
             alertDialog?.dismiss()
         }
 
@@ -75,6 +75,7 @@ class IncomingCallActivity : Activity() {
         alertDialog.show()
         Handler().postDelayed(Runnable {
             alertDialog.dismiss()
+            SharedPrefsUtil.setNumber("",this)
         }, 5000)
     }
 }
