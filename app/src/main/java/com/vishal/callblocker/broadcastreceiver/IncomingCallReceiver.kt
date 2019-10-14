@@ -32,7 +32,7 @@ class IncomingCallReceiver : BroadcastReceiver() {
         Log.d(LOG_TAG, String.format("Call state changed to %s", newState))
 
         if (TelephonyManager.EXTRA_STATE_RINGING == newState) {
-            val phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER)
+            var phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER)
             if (phoneNumber == null) {
                 Log.d(LOG_TAG, "Ignoring call; for some reason every state change is doubled")
                 return
@@ -41,6 +41,9 @@ class IncomingCallReceiver : BroadcastReceiver() {
 
             val blockedNumberDao = BlockedNumberDatabase.getInstance(context)?.blockedNumberDao()
             AsyncExecutorUtil.instance.executor.execute(Runnable {
+                if (!phoneNumber.contains("+91")) {
+                    phoneNumber = "+91" + phoneNumber
+                }
                 val match = blockedNumberDao?.all?.stream()?.filter { blockedNumber -> blockedNumber.regex.matcher(phoneNumber).find() }?.findAny()
                 if (match?.isPresent != true) {
                     Log.i(LOG_TAG, "No blocked number matched")
@@ -48,13 +51,14 @@ class IncomingCallReceiver : BroadcastReceiver() {
                 }
                 Log.i(LOG_TAG, String.format("Blocked number matched: %s", match.get().toFormattedString()))
 
+
                 val telecomManager = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
                 telecomManager.endCall()
 
                 // TODO Some UI
             })
-        } else {
-            val phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER)
+        } else if (TelephonyManager.EXTRA_STATE_OFFHOOK == newState) {
+            var phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER)
             if (phoneNumber == null) {
                 Log.d(LOG_TAG, "Ignoring call; for some reason every state change is doubled")
                 return
@@ -62,11 +66,17 @@ class IncomingCallReceiver : BroadcastReceiver() {
             Log.i(LOG_TAG, String.format("outGoing  call from %s", phoneNumber))
 
             val blockedNumberDao = BlockedNumberDatabase.getInstance(context)?.blockedNumberDao()
-            if (phoneNumber.equals("1234567890")) {
-                Log.i(LOG_TAG, String.format("Blocked number matched: %s", phoneNumber))
-                val telecomManager = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
-                telecomManager.endCall()
-                dialog(context, intent)
+//            if (phoneNumber.contains(SharedPrefsUtil.getNumber(context).toString())){
+//                Log.i(LOG_TAG, "redial for this no")
+//                SharedPrefsUtil.setNumber("",context)
+//            } else if (phoneNumber.equals("1234567890")) {
+//                Log.i(LOG_TAG, String.format("Blocked number matched: %s", phoneNumber))
+//                val telecomManager = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
+//                telecomManager.endCall()
+//                dialog(context, intent)
+//            }
+            if (!phoneNumber.contains("+91")) {
+                phoneNumber = "+91" + phoneNumber
             }
             AsyncExecutorUtil.instance.executor.execute(Runnable {
                 val match = blockedNumberDao?.all?.stream()?.filter { blockedNumber -> blockedNumber.regex.matcher(phoneNumber).find() }?.findAny()
@@ -74,8 +84,15 @@ class IncomingCallReceiver : BroadcastReceiver() {
                     Log.i(LOG_TAG, "No blocked number matched")
                     return@Runnable
                 }
-                Log.i(LOG_TAG, String.format("Blocked number matched: %s", match.get().toFormattedString()))
+                Log.i(LOG_TAG, "redial for this no" + phoneNumber+"shared preference "+ SharedPrefsUtil.getNumber(context).toString() + "condition "+phoneNumber.equals(SharedPrefsUtil.getNumber(context).toString()))
 
+                Log.i(LOG_TAG, String.format("Blocked number matched: %s", match.get().toFormattedString()))
+                if (phoneNumber.equals(SharedPrefsUtil.getNumber(context).toString())) {
+                    Log.i(LOG_TAG, "redial for this no" + phoneNumber+"shared preference "+ SharedPrefsUtil.getNumber(context).toString() + "condition "+phoneNumber.equals(SharedPrefsUtil.getNumber(context).toString()))
+                    SharedPrefsUtil.setNumber("",context)
+                    return@Runnable
+
+                }
                 val telecomManager = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
                 telecomManager.endCall()
 
@@ -87,17 +104,13 @@ class IncomingCallReceiver : BroadcastReceiver() {
     }
 
     private fun dialog(context: Context, intent: Intent?) {
-        if (!(intent?.getStringExtra(
-                        TelephonyManager.EXTRA_INCOMING_NUMBER).equals(SharedPrefsUtil.getNumber(context)))) {
-            val i = Intent(context, IncomingCallActivity::class.java)
-            i.putExtras(intent)
-            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS or Intent.FLAG_ACTIVITY_NO_ANIMATION)
+
+        val i = Intent(context, IncomingCallActivity::class.java)
+        i.putExtras(intent)
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS or Intent.FLAG_ACTIVITY_NO_ANIMATION)
 //        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 //        i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-            context.startActivity(i)
-        } else {
-            SharedPrefsUtil.setNumber("",context)
-        }
+        context.startActivity(i)
 
 //        showCustomPopupMenu(context)
 /*
