@@ -1,6 +1,7 @@
 package com.vishal.callblocker.activity
 
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
@@ -65,7 +66,11 @@ class RequestPermissionsActivity : AppCompatActivity() {
     private inner class PermissionsButtonListener : View.OnClickListener {
         override fun onClick(v: View) {
             permissionsButton?.isEnabled = false
-            requestPermissions(PermissionsUtil.REQUIRED_PERMISSIONS, PERMISSIONS_REQUEST_CODE)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(PermissionsUtil.REQUIRED_PERMISSIONS, PERMISSIONS_REQUEST_CODE)
+            }else{
+                finish()
+            }
         }
     }
 
