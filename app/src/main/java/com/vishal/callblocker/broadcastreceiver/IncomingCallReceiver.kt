@@ -6,12 +6,14 @@ import android.content.Context
 import android.content.Context.WINDOW_SERVICE
 import android.content.Intent
 import android.graphics.PixelFormat
+import android.os.Build
 import android.telecom.TelecomManager
 import android.telephony.TelephonyManager
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.WindowManager
+import com.android.internal.telephony.ITelephony
 import com.osquare.support.utils.sharedPreference.SharedPrefsUtil
 import com.vishal.callblocker.R
 import com.vishal.callblocker.activity.IncomingCallActivity
@@ -52,8 +54,9 @@ class IncomingCallReceiver : BroadcastReceiver() {
                 Log.i(LOG_TAG, String.format("Blocked number matched: %s", match.get().toFormattedString()))
 
 
-                val telecomManager = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
-                telecomManager.endCall()
+                blockCall(context)
+//                val telecomManager = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
+//                telecomManager.endCall()
 
                 // TODO Some UI
             })
@@ -84,17 +87,19 @@ class IncomingCallReceiver : BroadcastReceiver() {
                     Log.i(LOG_TAG, "No blocked number matched")
                     return@Runnable
                 }
-                Log.i(LOG_TAG, "redial for this no" + phoneNumber+"shared preference "+ SharedPrefsUtil.getNumber(context).toString() + "condition "+phoneNumber.equals(SharedPrefsUtil.getNumber(context).toString()))
+                Log.i(LOG_TAG, "redial for this no" + phoneNumber + "shared preference " + SharedPrefsUtil.getNumber(context).toString() + "condition " + phoneNumber.equals(SharedPrefsUtil.getNumber(context).toString()))
 
                 Log.i(LOG_TAG, String.format("Blocked number matched: %s", match.get().toFormattedString()))
                 if (phoneNumber.equals(SharedPrefsUtil.getNumber(context).toString())) {
-                    Log.i(LOG_TAG, "redial for this no" + phoneNumber+"shared preference "+ SharedPrefsUtil.getNumber(context).toString() + "condition "+phoneNumber.equals(SharedPrefsUtil.getNumber(context).toString()))
-                    SharedPrefsUtil.setNumber("",context)
+                    Log.i(LOG_TAG, "redial for this no" + phoneNumber + "shared preference " + SharedPrefsUtil.getNumber(context).toString() + "condition " + phoneNumber.equals(SharedPrefsUtil.getNumber(context).toString()))
+                    SharedPrefsUtil.setNumber("", context)
                     return@Runnable
 
                 }
-                val telecomManager = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
-                telecomManager.endCall()
+
+                blockCall(context)
+//                val telecomManager = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
+//                telecomManager.endCall()
 
                 dialog(context, intent)
 
@@ -156,6 +161,30 @@ class IncomingCallReceiver : BroadcastReceiver() {
         Handler().postDelayed(Runnable {
             alertDialog.dismiss()
         }, 5000)*/
+    }
+
+
+    @SuppressLint("MissingPermission")
+    fun blockCall(context: Context?) {
+        try {
+            val telephonyService: ITelephony
+            val telephony = context?.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+            val c = Class.forName(telephony.javaClass.getName())
+            val m = c.getDeclaredMethod("getITelephony")
+            m.isAccessible = true
+            telephonyService = m.invoke(telephony) as ITelephony
+            telephonyService.endCall()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                val telecomManager = context?.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
+                telecomManager.endCall()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     private fun showCustomPopupMenu(context: Context?) {

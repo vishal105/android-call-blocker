@@ -2,6 +2,7 @@ package com.vishal.callblocker.activity
 
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.FloatingActionButton
 import android.support.v7.app.AppCompatActivity
@@ -56,9 +57,10 @@ class ConfigurationActivity : AppCompatActivity() {
         blockedNumberDao = BlockedNumberDatabase.getInstance(this)?.blockedNumberDao()
 
         fetchAndPopulateBlockedNumbers()
-
-        if (!permissionsUtil.checkPermissions()) {
-            startActivity(Intent(this, RequestPermissionsActivity::class.java))
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!permissionsUtil.checkPermissions()) {
+                startActivity(Intent(this, RequestPermissionsActivity::class.java))
+            }
         }
     }
 
